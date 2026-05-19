@@ -37,7 +37,7 @@ def save_markdown_report(
         f"# Cross-Platform Arbitrage Scan",
         f"",
         f"**Scanned:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
-        f"**Platforms:** Polymarket ↔ Kalshi",
+        f"**Platforms:** Polymarket <-> Kalshi",
         f"**Opportunities found:** {len(opportunities)}",
         f"",
         f"---",
@@ -50,8 +50,8 @@ def save_markdown_report(
         lines.append(f"| # | Spread | PM Price | Kalshi Price | Market | Risk |")
         lines.append(f"|---|--------|----------|--------------|--------|------|")
         for i, o in enumerate(opportunities[:20], 1):
-            risk_icon = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}.get(
-                o.settlement_risk_level, "⚪"
+            risk_icon = {"low": "[LOW]", "medium": "[MED]", "high": "[HIGH]", "critical": "[CRIT]"}.get(
+                o.settlement_risk_level, "[?]"
             )
             lines.append(
                 f"| {i} | **{o.spread_pct:.1f}%** | {o.polymarket_price:.4f} | "

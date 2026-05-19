@@ -11,26 +11,26 @@ def format_opportunities_table(opportunities: list[SpreadOpportunity]) -> str:
 
     lines = [
         "",
-        "═" * 90,
+        "=" * 90,
         "  CROSS-PLATFORM ARBITRAGE OPPORTUNITIES",
-        "  Polymarket ↔ Kalshi",
-        "═" * 90,
+        "  Polymarket <-> Kalshi",
+        "=" * 90,
         "",
     ]
 
     for i, o in enumerate(opportunities[:10], 1):
-        risk_icon = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}.get(
-            o.settlement_risk_level, "⚪"
+        risk_label = {"low": "[LOW]", "medium": "[MED]", "high": "[HIGH]", "critical": "[CRIT]"}.get(
+            o.settlement_risk_level, "[?]"
         )
 
         lines.append(f"  #{i}  {o.market_title[:80]}")
-        lines.append(f"      PM: ${o.polymarket_price:.4f}  │  Kalshi: ${o.kalshi_price:.4f}  │  Spread: {o.spread_pct:.1f}%")
-        lines.append(f"      Direction: {o.direction}  │  PM Vol: ${o.polymarket_volume_24h:,.0f}  │  Risk: {risk_icon} {o.settlement_risk_level}")
+        lines.append(f"      PM: ${o.polymarket_price:.4f}  |  Kalshi: ${o.kalshi_price:.4f}  |  Spread: {o.spread_pct:.1f}%")
+        lines.append(f"      Direction: {o.direction}  |  PM Vol: ${o.polymarket_volume_24h:,.0f}  |  Risk: {risk_label} {o.settlement_risk_level}")
         if o.settlement_risk:
-            lines.append(f"      ⚠ {o.settlement_risk}")
+            lines.append(f"      WARNING: {o.settlement_risk}")
         lines.append("")
 
-    lines.append("═" * 90)
+    lines.append("=" * 90)
     return "\n".join(lines)
 
 
@@ -50,15 +50,15 @@ async def send_telegram_alert(opportunities: list[SpreadOpportunity], bot_token:
 
     import httpx
     top = opportunities[:5]
-    lines = ["🔔 *Cross-Platform Arb Alerts*", ""]
+    lines = ["[CROSS-PLATFORM ARB ALERTS]", ""]
     for o in top:
-        risk_icon = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}.get(
-            o.settlement_risk_level, "⚪"
+        risk_label = {"low": "[LOW]", "medium": "[MED]", "high": "[HIGH]", "critical": "[CRIT]"}.get(
+            o.settlement_risk_level, "[?]"
         )
-        lines.append(f"{risk_icon} *{o.spread_pct:.1f}%* - {o.market_title[:60]}")
+        lines.append(f"{risk_label} *{o.spread_pct:.1f}%* - {o.market_title[:60]}")
         lines.append(f"  PM ${o.polymarket_price:.4f} | Kalshi ${o.kalshi_price:.4f} | {o.direction}")
         if o.settlement_risk:
-            lines.append(f"  ⚠ {o.settlement_risk[:120]}")
+            lines.append(f"  WARNING: {o.settlement_risk[:120]}")
 
     try:
         async with httpx.AsyncClient() as client:
