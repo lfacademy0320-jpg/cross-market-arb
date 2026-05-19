@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArbSignal - Cross-Platform Arbitrage Alerts</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; line-height: 1.6; }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 20px; }
+  h1 { font-size: 2.2em; color: #00ff88; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 1.1em; margin-bottom: 40px; }
+  .card { background: #141420; border: 1px solid #252535; border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+  .card h2 { color: #fff; margin-bottom: 12px; font-size: 1.2em; }
+  .card p { color: #aaa; margin-bottom: 16px; }
+  .price { font-size: 2.5em; font-weight: 700; color: #00ff88; }
+  .price span { font-size: 0.4em; color: #888; }
+  .features { list-style: none; }
+  .features li { padding: 8px 0; color: #ccc; }
+  .features li::before { content: "> "; color: #00ff88; }
+  .cta { display: inline-block; background: #00ff88; color: #0a0a0f; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 1.1em; margin-top: 16px; }
+  .cta:hover { background: #00cc6a; }
+  .signal-preview { background: #0d0d18; border: 1px solid #1a1a2e; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 0.85em; color: #7eb8ff; margin: 12px 0; }
+  .footer { text-align: center; color: #555; margin-top: 40px; font-size: 0.85em; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ArbSignal</h1>
+  <p class="subtitle">Cross-platform arbitrage alerts. Polymarket + Kalshi. Real money signals.</p>
+
+  <div class="card">
+    <h2>Free Tier</h2>
+    <div class="price">$0<span>/month</span></div>
+    <p>One daily summary of top arbitrage spreads. Delayed 24 hours.</p>
+    <ul class="features">
+      <li>Daily top-5 spread summary</li>
+      <li>Email delivery</li>
+      <li>Delayed 24 hours</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-color: #00ff88;">
+    <h2>Pro Trader</h2>
+    <div class="price">$49<span>/month</span></div>
+    <p>Real-time signals. Execute before the edge disappears.</p>
+    <ul class="features">
+      <li>Real-time Telegram alerts (every 10 min)</li>
+      <li>Quality-filtered signals only (3%+ spread, verified)</li>
+      <li>Settlement risk analysis included</li>
+      <li>Historical signal performance tracking</li>
+      <li>Priority: 10-min scan interval</li>
+    </ul>
+    <div class="signal-preview">
+      [MED] 13.7% spread<br>
+      PM: $0.0035 | Kalshi: $0.1400<br>
+      Direction: buy_pm_sell_kalshi<br>
+      Risk: Resolution sources may differ
+    </div>
+    <a href="#" class="cta">Subscribe - $49/mo</a>
+  </div>
+
+  <div class="card">
+    <h2>Institutional</h2>
+    <div class="price">$199<span>/month</span></div>
+    <p>API access + raw data feed for quant funds and trading desks.</p>
+    <ul class="features">
+      <li>REST API access (JSON, 1-min refresh)</li>
+      <li>Raw market data + spread history</li>
+      <li>WebSocket real-time feed</li>
+      <li>Slack + Telegram integration</li>
+      <li>Custom threshold configuration</li>
+    </ul>
+    <a href="#" class="cta">Contact Us</a>
+  </div>
+
+  <div class="footer">
+    ArbSignal runs on the same infrastructure as our production trading systems.<br>
+    Not financial advice. Prediction markets involve risk of loss.
+  </div>
+</div>
+</body>
+</html>
