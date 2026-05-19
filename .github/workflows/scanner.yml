@@ -1,0 +1,39 @@
+name: ArbSignal Scanner
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # Every 10 minutes
+  workflow_dispatch:          # Manual trigger
+
+jobs:
+  scan-and-deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install httpx pydantic pydantic-settings python-dotenv loguru
+
+      - name: Run ArbSignal Bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+          POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
+          SUBSCRIPTION_WALLET: ${{ secrets.SUBSCRIPTION_WALLET }}
+        run: python bot.py --once
+
+      - name: Commit subscriber updates
+        if: always()
+        run: |
+          git config user.name "ArbSignal Bot"
+          git config user.email "bot@arbsignal.ai"
+          git add subscription/subscribers.db signals.jsonl 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "auto: update subscriber state [skip ci]"
+          git push origin master
