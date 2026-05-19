@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 
 class ScanSettings(BaseSettings):
-    model_config = {"env_prefix": "", "env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_prefix": "", "env_file": ".env", "env_file_encoding": "utf-8", "extra": "allow"}
 
     polymarket_gamma_url: str = "https://gamma-api.polymarket.com"
     kalshi_api_url: str = "https://api.elections.kalshi.com/trade-api/v2"
