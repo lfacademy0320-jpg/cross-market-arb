@@ -40,21 +40,30 @@ def _parse_pm_price(market: dict) -> float | None:
 
 
 def _parse_km_price(market: dict) -> float | None:
-    """Extract Kalshi YES midpoint from market data."""
+    """Extract Kalshi YES price from available fields.
+
+    list_markets() provides last_price_dollars (most recent trade).
+    get_market()/orderbook provide yes_bid/yes_ask for midpoint.
+    """
+    # Try order book fields first (from single-market or batch/quotes fetch)
     yes_bid = market.get("yes_bid")
     yes_ask = market.get("yes_ask")
-
     bid = float(yes_bid) if yes_bid is not None else None
     ask = float(yes_ask) if yes_ask is not None else None
-
-    if bid is not None and ask is not None:
-        mid = (bid + ask) / 2
-        if 0 < mid < 1:
-            return mid
+    if bid is not None and ask is not None and 0 < bid < 1 and 0 < ask < 1:
+        return round((bid + ask) / 2, 4)
     if bid is not None and 0 < bid < 1:
         return bid
-    if ask is not None and 0 < ask < 1:
-        return ask
+
+    # Fall back to last_price_dollars (available in list_markets response)
+    lpd = market.get("last_price_dollars")
+    if lpd is not None:
+        try:
+            price = float(lpd)
+            if 0 < price < 1:
+                return price
+        except (ValueError, TypeError):
+            pass
     return None
 
 
@@ -71,14 +80,40 @@ class CrossPlatformScanner:
         await self.kalshi.close()
 
     async def scan(self, match_threshold: float = 0.55) -> list[SpreadOpportunity]:
+        import asyncio as aio
+
         pm_markets = await self.polymarket.list_markets(
             limit=self.settings.max_scan_markets,
             volume_num_min=self.settings.min_volume_24h,
         )
         logger.info(f"Polymarket: {len(pm_markets)} markets loaded")
 
-        km_markets = await self.kalshi.list_markets(limit=self.settings.max_scan_markets)
-        logger.info(f"Kalshi: {len(km_markets)} markets loaded")
+        # Kalshi: get events first, then fetch per-event markets (simple binary, not multivariate)
+        # Cap at 40 events to keep total API calls manageable
+        km_events = await self.kalshi.list_events(limit=min(self.settings.max_scan_markets, 40))
+        logger.info(f"Kalshi: {len(km_events)} events loaded")
+
+        # Fetch markets for all events in parallel batches of 10
+        all_km_markets: list[dict] = []
+        sem = aio.Semaphore(10)
+        async def fetch_event_markets(event: dict) -> list[dict]:
+            et = event.get("event_ticker") or event.get("ticker")
+            if not et:
+                return []
+            async with sem:
+                try:
+                    markets = await self.kalshi.list_markets(event_ticker=et, limit=20)
+                    for m in markets:
+                        m["_event_title"] = event.get("title", "")
+                    return markets
+                except Exception:
+                    return []
+
+        tasks = [fetch_event_markets(e) for e in km_events]
+        results = await aio.gather(*tasks)
+        for r in results:
+            all_km_markets.extend(r)
+        logger.info(f"Kalshi: {len(all_km_markets)} per-event markets loaded")
 
         # Fetch order book prices for Polymarket markets that lack outcomePrices
         needs_order_book = [
@@ -99,7 +134,7 @@ class CrossPlatformScanner:
                 for m, ob in zip(needs_order_book, ob_prices):
                     m["_ob_midpoint"] = ob.get("midpoint", 0.5)
 
-        pairs = match_events(pm_markets, km_markets, threshold=match_threshold)
+        pairs = match_events(pm_markets, all_km_markets, threshold=match_threshold)
 
         opportunities: list[SpreadOpportunity] = []
         for pm, km, score in pairs:
@@ -120,9 +155,10 @@ class CrossPlatformScanner:
                 pm.get("title", ""),
             )
 
+            km_title = km.get("title", km.get("_event_title", ""))
             opp = SpreadOpportunity(
-                event_title=pm.get("title", "") or pm.get("event_title", ""),
-                market_title=pm.get("question", km.get("title", "")),
+                event_title=km.get("_event_title", "") or pm.get("title", ""),
+                market_title=pm.get("question", km_title),
                 polymarket_price=round(pm_price, 4),
                 kalshi_price=round(km_price, 4),
                 spread_pct=spread["spread_pct"],
