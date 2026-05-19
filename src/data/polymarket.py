@@ -1,3 +1,4 @@
+import time
 import asyncio
 import httpx
 from loguru import logger
@@ -19,11 +20,11 @@ class PolymarketClient:
         )
 
     async def _rate_limit(self):
-        now = asyncio.get_event_loop().time()
+        now = time.monotonic()
         wait = self._last_call + self._min_interval - now
         if wait > 0:
             await asyncio.sleep(wait)
-        self._last_call = asyncio.get_event_loop().time()
+        self._last_call = time.monotonic()
 
     async def close(self):
         await self._client.aclose()
